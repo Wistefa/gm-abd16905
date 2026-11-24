@@ -11,3 +11,6 @@ Einzel-HTML-App (`index.html`) für **Medikamenten-Einnahme** und **Arzttermine*
 Getestet (Chromium, Handy-Format): Einrichtung, Medikament anlegen, Einnahme/Rücknahme mit Vorrat, Überspringen, Wochentage, Termin, .ics (VALARM), Personenwechsel, Verlauf, Arzt-Übersicht, Sicherung/Einlesen, Löschen, Neuladen. Nicht getestet: iPhone-Safari (Teilen → Erinnerungen, .ics → Kalender).
 
 Kein medizinischer Rat; keine Prüfung von Wechselwirkungen.
+
+## Adresse
+https://wistefa.github.io/gm-abd16905/ (öffentliches Repository nur mit dem App-Code, Name absichtlich unauffällig; Seite mit noindex). Die Gesundheitsdaten liegen nie auf GitHub, sondern nur im Browser des jeweiligen Geräts. Private Repositories können auf dem aktuellen GitHub-Tarif keine Pages ausliefern.
