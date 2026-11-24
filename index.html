@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Gesundheitsmappe</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Gesundheit">
+<meta name="theme-color" content="#0E6B62">
+<meta name="robots" content="noindex,nofollow">
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%230E6B62'/%3E%3Crect x='42' y='72' width='96' height='36' rx='18' transform='rotate(-35 90 90)' fill='none' stroke='white' stroke-width='9'/%3E%3Cpath d='M78 71l30 38' stroke='white' stroke-width='9'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230E6B62'/%3E%3Crect x='14' y='25' width='36' height='14' rx='7' transform='rotate(-35 32 32)' fill='none' stroke='white' stroke-width='4'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#EDF2F0; --surface:#FFFFFF; --ink:#14302B; --muted:#58706A; --line:#D3DEDA;
+  --accent:#0E6B62; --accent-ink:#FFFFFF; --tint:#E1EFEB;
+  --ok:#2A7A4B; --ok-bg:#E2F2E8; --due:#A64B08; --due-bg:#FFF0D9; --miss:#B42318; --miss-bg:#FDE8E6;
+  --font:"Atkinson Hyperlegible",-apple-system,system-ui,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0D1816; --surface:#162623; --ink:#E5F0ED; --muted:#9BB2AC; --line:#29403B;
+    --accent:#52C4B4; --accent-ink:#04211D; --tint:#1B3531;
+    --ok:#6FCF97; --ok-bg:#16352A; --due:#F2B25C; --due-bg:#3A2B12; --miss:#F28B82; --miss-bg:#3C1B18; color-scheme:dark;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:18px;line-height:1.4}
+button,input,select,textarea{font:inherit;color:inherit}
+.app{max-width:560px;margin:0 auto;height:100%;display:flex;flex-direction:column;background:var(--bg)}
+.top{padding:calc(14px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));
+  background:var(--surface);border-bottom:1px solid var(--line)}
+.toprow{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.top h1{margin:0;font-size:25px;line-height:1.15}
+.top .date{color:var(--muted);font-size:16px}
+.iconbtn{width:48px;height:48px;border-radius:14px;border:2px solid var(--line);background:transparent;cursor:pointer;display:grid;place-items:center;flex:none}
+.iconbtn svg{width:24px;height:24px;stroke:var(--ink);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.persons{display:flex;gap:8px;margin-top:10px}
+.person{flex:1;min-height:46px;border-radius:12px;border:2px solid var(--line);background:transparent;font-weight:700;cursor:pointer}
+.person[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px max(14px,env(safe-area-inset-right,0px)) 110px max(14px,env(safe-area-inset-left,0px))}
+h2{font-size:20px;margin:22px 0 8px}
+h2:first-child{margin-top:4px}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);background:var(--surface);
+  padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.tab{border:0;background:transparent;padding:9px 2px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:14px;color:var(--muted);cursor:pointer;min-height:62px}
+.tab svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.tab[aria-selected="true"]{color:var(--accent);font-weight:700}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.fab{position:fixed;right:max(18px,calc(50% - 280px + 18px));bottom:calc(84px + env(safe-area-inset-bottom,0px));width:62px;height:62px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);
+  font-size:36px;line-height:1;cursor:pointer;box-shadow:0 6px 18px rgba(10,60,50,.35);z-index:3}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:10px 0}
+.summary{display:flex;align-items:center;gap:16px;background:var(--tint);border:0}
+.ring{width:72px;height:72px;flex:none}
+.ring circle{fill:none;stroke-width:8}
+.ring .bg{stroke:var(--line)}
+.ring .fg{stroke:var(--accent);stroke-linecap:round}
+.ring text{font-size:20px;font-weight:700;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+.summary b{font-size:22px;display:block;line-height:1.2}
+.summary span{color:var(--muted);font-size:16px}
+.slot{display:flex;justify-content:space-between;align-items:baseline;margin:20px 4px 6px;font-weight:700}
+.slot small{color:var(--muted);font-weight:400;font-size:16px}
+.dose{display:flex;align-items:center;gap:12px;padding:12px 14px;margin:8px 0}
+.dose .info{flex:1;min-width:0}
+.dose .info b{display:block;font-size:19px}
+.dose .info span{color:var(--muted);font-size:16px}
+.dose.done .info b{text-decoration:line-through;text-decoration-thickness:1px;color:var(--muted)}
+.dose.late{border-color:var(--due)}
+.dose .acts{display:flex;flex-direction:column;gap:6px;flex:none}
+.take{min-width:118px;min-height:52px;border-radius:14px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-weight:700;cursor:pointer;padding:0 12px}
+.take[aria-pressed="true"]{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
+.skip{min-height:34px;border:0;background:transparent;color:var(--muted);font-size:15px;text-decoration:underline;cursor:pointer}
+.pill{display:inline-block;font-size:14px;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--tint);color:var(--accent);margin:2px 6px 2px 0}
+.pill.due{background:var(--due-bg);color:var(--due)}
+.pill.miss{background:var(--miss-bg);color:var(--miss)}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}
+.meta{color:var(--muted);font-size:16px}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.next{display:flex;gap:14px;align-items:center;cursor:pointer;width:100%;text-align:left}
+.dateblock{flex:none;width:62px;text-align:center;border-radius:12px;background:var(--tint);padding:8px 0}
+.dateblock b{display:block;font-size:26px;line-height:1}
+.dateblock span{font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:8px 0 4px}
+.bar i{display:block;height:100%;background:var(--ok);border-radius:99px}
+.bar i.low{background:var(--due)}
+.check{display:flex;gap:10px;align-items:center;padding:8px 0;font-size:17px;font-weight:400;margin:0}
+.check input{width:24px;height:24px;accent-color:var(--accent);flex:none}
+.grid14{display:grid;grid-template-columns:repeat(14,1fr);gap:4px;margin:8px 0 2px}
+.grid14 i{display:block;aspect-ratio:1;border-radius:6px;background:var(--line)}
+.grid14 i.ok{background:var(--ok)}
+.grid14 i.miss{background:var(--miss)}
+.grid14 i.late{background:var(--due)}
+.grid14 i.skip{background:var(--muted);opacity:.5}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:15px;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:6px;vertical-align:-1px}
+.btn{min-height:52px;border-radius:14px;border:2px solid var(--accent);background:var(--accent);color:var(--accent-ink);font-weight:700;padding:0 18px;cursor:pointer;width:100%}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.danger{background:transparent;border-color:var(--miss);color:var(--miss)}
+.btn.small{min-height:44px;width:auto;font-size:16px}
+.sheet-wrap{position:fixed;inset:0;background:rgba(5,20,16,.55);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.sheet{background:var(--surface);border-radius:24px 24px 0 0;padding:18px 18px calc(22px + env(safe-area-inset-bottom,0px));width:100%;max-width:560px;max-height:94%;overflow-y:auto}
+.sheet h3{margin:0 0 10px;font-size:23px}
+label{display:block;font-weight:700;font-size:16px;margin:12px 0 4px}
+input[type=text],input[type=date],input[type=time],input[type=number],input[type=tel],select,textarea{width:100%;min-height:50px;border:2px solid var(--line);border-radius:12px;padding:8px 12px;background:var(--surface);font-size:18px}
+textarea{min-height:84px}
+.times{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.times .chip{display:flex;gap:8px;align-items:center;border:2px solid var(--line);border-radius:12px;padding:6px 8px 6px 12px;background:var(--surface)}
+.times .chip input{width:100px;min-height:40px;border:0;padding:0}
+.times .chip button{border:0;background:transparent;font-size:22px;color:var(--miss);cursor:pointer;min-width:34px;min-height:40px}
+.wdays{display:flex;gap:6px;flex-wrap:wrap}
+.wdays label{margin:0;font-weight:700;border:2px solid var(--line);border-radius:12px;min-width:46px;min-height:46px;display:grid;place-items:center;cursor:pointer;font-size:16px}
+.wdays input{position:absolute;opacity:0;pointer-events:none}
+.wdays input:checked+span{color:var(--accent-ink);background:var(--accent);border-radius:9px;width:100%;height:100%;display:grid;place-items:center}
+.wdays label:has(input:checked){border-color:var(--accent)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.actions.one{grid-template-columns:1fr}
+.empty{color:var(--muted);text-align:center;padding:26px 8px}
+.note{background:var(--due-bg);color:var(--due);border-radius:12px;padding:10px 14px;font-size:16px;margin:10px 0}
+.hint{color:var(--muted);font-size:15px;margin:4px 0 0}
+ul.q{margin:0;padding-left:20px}
+.tel{color:var(--accent);font-weight:700}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--surface);padding:12px 18px;border-radius:14px;z-index:30;max-width:90%;font-size:16px}
+.print-only{display:none}
+@media print{
+  body{background:#fff;color:#000;height:auto}
+  .app>*:not(#printarea){display:none!important}
+  .app{display:block;height:auto;max-width:none}
+  .sheet-wrap,.toast,.fab{display:none!important}
+  .print-only{display:block!important}
+  #printarea{display:block!important}
+  table{width:100%;border-collapse:collapse}
+  td,th{border-bottom:1px solid #999;padding:6px 4px;text-align:left}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="top">
+    <div class="toprow">
+      <div><h1 id="ttl">Heute</h1><div class="date" id="dt"></div></div>
+      <button class="iconbtn" id="btn-set" aria-label="Einstellungen"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 14a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V20a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H4a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H10a1.7 1.7 0 0 0 1-1.5V4a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V10a1.7 1.7 0 0 0 1.5 1H20a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+    </div>
+    <div class="persons" id="persons"></div>
+  </header>
+  <main id="view"></main>
+  <button class="fab" id="fab" aria-label="Neu">+</button>
+  <nav class="tabs" role="tablist" aria-label="Bereiche">
+    <button class="tab" role="tab" data-v="heute"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Heute</button>
+    <button class="tab" role="tab" data-v="meds"><svg viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="7" rx="3.5" transform="rotate(-35 12 12.5)"/><path d="m9.4 8.8 5 5.8"/></svg>Medikamente</button>
+    <button class="tab" role="tab" data-v="termine"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Termine</button>
+    <button class="tab" role="tab" data-v="verlauf"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l4-5 3 3 5-7"/></svg>Verlauf</button>
+  </nav>
+  <div id="printarea" class="print-only"></div>
+</div>
+<div id="layer"></div>
+
+<script>
+(function(){
+'use strict';
+/* ===================== Hilfen ===================== */
+const $=(s,r)=>(r||document).querySelector(s), $$=(s,r)=>Array.from((r||document).querySelectorAll(s));
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parseISO=s=>{const p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])};
+const todayDate=()=>{const d=new Date();d.setHours(0,0,0,0);return d};
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const diffDays=(a,b)=>Math.round((a-b)/86400000);
+const nowStr=()=>{const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())};
+const mins=t=>{const p=t.split(':');return (+p[0])*60+(+p[1])};
+const fmtLong=d=>d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'});
+const fmtDate=s=>parseISO(s).toLocaleDateString('de-DE',{day:'numeric',month:'long',year:'numeric'});
+const monShort=d=>d.toLocaleDateString('de-DE',{month:'short'}).replace('.','');
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const WT=['So','Mo','Di','Mi','Do','Fr','Sa'];
+function dayLabel(n){return n===0?'heute':n===1?'morgen':n===-1?'gestern':(n>0?'in '+n+' Tagen':'vor '+(-n)+' Tagen')}
+function slotName(t){const m=mins(t);return m<11*60?'Morgens':m<15*60?'Mittags':m<20*60?'Abends':'Zur Nacht'}
+
+/* ===================== Speicher (nur auf diesem Gerät) ===================== */
+const KEY='gesundheitsmappe.v1';
+let S=load();
+function blank(){return{v:1,personen:[],aktiv:null,meds:[],log:[],termine:[],letzteSicherung:null,angelegt:iso(todayDate())}}
+function load(){
+  try{const r=localStorage.getItem(KEY); if(r){const d=JSON.parse(r); if(d&&d.v===1) return d}}catch(e){}
+  return blank();
+}
+let storageOk=true;
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(S)); storageOk=true}catch(e){storageOk=false}
+}
+const person=()=>S.personen.find(p=>p.id===S.aktiv)||S.personen[0];
+const myMeds=()=>S.meds.filter(m=>m.pid===S.aktiv&&m.aktiv!==false);
+const myTermine=()=>S.termine.filter(t=>t.pid===S.aktiv);
+
+/* ===================== Medikamenten-Logik ===================== */
+function dueOn(m,d){
+  if(m.seit&&iso(d)<m.seit) return false;
+  if(m.bis&&iso(d)>m.bis) return false;
+  if(m.tage&&m.tage.length&&m.tage.indexOf(d.getDay())<0) return false;
+  return true;
+}
+const logKey=(mid,datum,slot)=>mid+'|'+datum+'|'+slot;
+function findLog(mid,datum,slot){return S.log.find(l=>l.pid===S.aktiv&&l.key===logKey(mid,datum,slot))}
+function dosesFor(d){
+  const out=[];
+  myMeds().forEach(m=>{ if(dueOn(m,d)) m.zeiten.forEach(z=>out.push({med:m,zeit:z,datum:iso(d)})); });
+  return out.sort((a,b)=>a.zeit.localeCompare(b.zeit)||a.med.name.localeCompare(b.med.name));
+}
+function perDay(m){const f=(m.tage&&m.tage.length)?m.tage.length/7:1;return (m.dosis||1)*m.zeiten.length*f}
+function vorratTage(m){return (m.bestand==null||m.bestand==='')?null:Math.floor(m.bestand/perDay(m))}
+function setTaken(med,datum,slot,status){
+  const ex=findLog(med.id,datum,slot);
+  if(ex){ // zurücknehmen
+    if(ex.status==='genommen'&&med.bestand!=null&&med.bestand!=='') med.bestand=+med.bestand+(med.dosis||1);
+    S.log=S.log.filter(l=>l!==ex);
+    if(ex.status===status){save();return}
+  }
+  S.log.push({id:uid(),pid:S.aktiv,key:logKey(med.id,datum,slot),mid:med.id,datum:datum,slot:slot,zeit:nowStr(),status:status});
+  if(status==='genommen'&&med.bestand!=null&&med.bestand!=='') med.bestand=Math.max(0,+med.bestand-(med.dosis||1));
+  save();
+}
+/* 14 Tage: ok / late / miss / skip / null (nichts fällig oder noch offen) */
+function dayState(m,d){
+  const t=todayDate();
+  if(!dueOn(m,d)) return null;
+  let ok=0,late=0,miss=0,skip=0,open=0;
+  m.zeiten.forEach(z=>{
+    const l=findLog(m.id,iso(d),z);
+    if(l){ if(l.status==='übersprungen') skip++; else { (mins(l.zeit)-mins(z)>90 && l.datum===iso(d))?late++:ok++; } }
+    else if(d<t) miss++;
+    else if(d.getTime()===t.getTime()&&mins(z)+90<mins(nowStr())) miss++;
+    else open++;
+  });
+  if(miss) return 'miss'; if(late) return 'late'; if(ok) return 'ok'; if(skip) return 'skip'; return null;
+}
+function adherence(days){
+  let good=0,total=0; const t=todayDate();
+  myMeds().forEach(m=>{ for(let i=days-1;i>=0;i--){const d=addDays(t,-i); const s=dayState(m,d); if(s==='ok'||s==='late'){good++;total++} else if(s==='miss'){total++}} });
+  return total?Math.round(good/total*100):null;
+}
+
+/* ===================== Ansichten ===================== */
+let view='heute', sheet=null, editId=null;
+function ring(done,total){
+  const r=30,c=2*Math.PI*r,p=total?done/total:0;
+  return '<svg class="ring" viewBox="0 0 72 72" role="img" aria-label="'+done+' von '+total+' genommen"><circle class="bg" cx="36" cy="36" r="'+r+'"/><circle class="fg" cx="36" cy="36" r="'+r+'" transform="rotate(-90 36 36)" stroke-dasharray="'+(c*p).toFixed(1)+' '+c.toFixed(1)+'"/><text x="36" y="37">'+done+'/'+total+'</text></svg>';
+}
+function renderHeute(){
+  const t=todayDate(), all=dosesFor(t);
+  const done=all.filter(d=>findLog(d.med.id,d.datum,d.zeit)).length, left=all.length-done;
+  let h='';
+  if(!myMeds().length&&!myTermine().length){
+    return '<div class="empty"><p><b>Noch nichts eingetragen.</b></p><p>Lege im Reiter „Medikamente“ die erste Tablette an, oder im Reiter „Termine“ den nächsten Arztbesuch.</p></div>';
+  }
+  if(S.meds.length&&(!S.letzteSicherung||diffDays(t,parseISO(S.letzteSicherung))>30)) h+='<div class="note">Seit über 30 Tagen keine Sicherung. Unter Einstellungen die Daten als Datei sichern.</div>';
+  if(!storageOk) h+='<div class="note">Das Gerät erlaubt kein Speichern. Die Daten gehen verloren, wenn die Seite geschlossen wird.</div>';
+  if(all.length){
+    const nxt=all.find(d=>!findLog(d.med.id,d.datum,d.zeit));
+    h+='<div class="card summary">'+ring(done,all.length)+'<div><b>'+(left?left+' noch offen':'Alles genommen')+'</b><span>'+(left?'Nächste um '+nxt.zeit+' Uhr':'Gut gemacht für heute')+'</span></div></div>';
+  }
+  const nt=myTermine().filter(x=>x.datum>=iso(t)).sort((a,b)=>(a.datum+a.zeit).localeCompare(b.datum+b.zeit))[0];
+  if(nt){const d=parseISO(nt.datum);
+    h+='<h2>Nächster Arzttermin</h2><button class="card next" data-go="termine"><div class="dateblock"><b>'+d.getDate()+'</b><span>'+monShort(d)+'</span></div><div><b>'+esc(nt.arzt)+(nt.fach?', '+esc(nt.fach):'')+'</b><div class="meta">'+dayLabel(diffDays(d,t))+(nt.zeit?', '+esc(nt.zeit)+' Uhr':'')+(nt.fragen.length?' · '+nt.fragen.length+' Fragen vorbereitet':'')+'</div></div></button>';}
+  let lastSlot=null;
+  all.forEach(d=>{
+    const sl=slotName(d.zeit)+'|'+d.zeit;
+    if(sl!==lastSlot){h+='<div class="slot"><span>'+slotName(d.zeit)+'</span><small>'+esc(d.zeit)+' Uhr</small></div>';lastSlot=sl}
+    const l=findLog(d.med.id,d.datum,d.zeit), isTaken=l&&l.status==='genommen', isSkip=l&&l.status==='übersprungen';
+    const overdue=!l&&mins(d.zeit)+30<mins(nowStr());
+    h+='<div class="card dose'+(l?' done':'')+(overdue?' late':'')+'"><div class="info"><b>'+esc(d.med.name)+' '+esc(d.med.staerke||'')+'</b><span>'+(d.med.dosis||1)+' '+esc(d.med.form||'Tablette')+(d.med.hinweis?' · '+esc(d.med.hinweis):'')+(overdue?' · <b style="color:var(--due)">überfällig</b>':'')+'</span></div>'+
+       '<div class="acts"><button class="take" aria-pressed="'+(!!isTaken)+'" data-take="'+esc(d.med.id)+'|'+d.datum+'|'+esc(d.zeit)+'">'+(isTaken?'✓ '+esc(l.zeit):isSkip?'übersprungen':'Genommen')+'</button>'+
+       (l?'':'<button class="skip" data-skip="'+esc(d.med.id)+'|'+d.datum+'|'+esc(d.zeit)+'">Überspringen</button>')+'</div></div>';
+  });
+  const low=myMeds().filter(m=>{const v=vorratTage(m);return v!=null&&v<=(m.warnTage||10)});
+  low.forEach(m=>{h+='<div class="note">'+esc(m.name)+' reicht noch '+vorratTage(m)+' Tage. Rezept besorgen.</div>'});
+  return h;
+}
+function renderMeds(){
+  let h='<h2>Meine Medikamente</h2>';
+  const list=myMeds();
+  if(!list.length) h+='<div class="empty">Noch kein Medikament eingetragen. Mit der Plus-Taste anlegen.</div>';
+  list.forEach(m=>{
+    const v=vorratTage(m), pct=v==null?0:Math.min(100,Math.round(v/30*100)), low=v!=null&&v<=(m.warnTage||10);
+    h+='<button class="card list-btn" style="display:block;width:100%;text-align:left" data-edit-med="'+esc(m.id)+'"><div class="row"><div><b style="font-size:20px">'+esc(m.name)+' '+esc(m.staerke||'')+'</b><div class="meta">'+(m.dosis||1)+' '+esc(m.form||'Tablette')+(m.zweck?' · gegen '+esc(m.zweck):'')+'</div></div></div>'+
+       '<div style="margin-top:6px">'+m.zeiten.map(z=>'<span class="pill">'+slotName(z)+' '+esc(z)+'</span>').join('')+(m.tage&&m.tage.length?'<span class="pill">'+m.tage.slice().sort().map(i=>WT[i]).join(' ')+'</span>':'')+'</div>'+
+       (m.hinweis?'<div class="meta">'+esc(m.hinweis)+'</div>':'')+
+       (v!=null?'<div class="bar" aria-hidden="true"><i class="'+(low?'low':'')+'" style="width:'+pct+'%"></i></div><div class="meta">Vorrat reicht noch <b style="color:var(--ink)">'+v+' Tage</b> ('+m.bestand+' Stück)</div>':'<div class="hint">Kein Vorrat eingetragen</div>')+'</button>';
+  });
+  const ended=S.meds.filter(m=>m.pid===S.aktiv&&m.aktiv===false);
+  if(ended.length) h+='<p class="hint">'+ended.length+' beendete(s) Medikament(e) sind ausgeblendet. Der Verlauf bleibt erhalten.</p>';
+  return h;
+}
+function renderTermine(){
+  const t=todayDate(), key=iso(t);
+  const all=myTermine().slice();
+  const up=all.filter(x=>x.datum>=key).sort((a,b)=>(a.datum+a.zeit).localeCompare(b.datum+b.zeit));
+  const past=all.filter(x=>x.datum<key).sort((a,b)=>(b.datum+b.zeit).localeCompare(a.datum+a.zeit));
+  let h='<h2>Kommende Termine</h2>';
+  if(!up.length) h+='<div class="empty">Kein Termin eingetragen. Mit der Plus-Taste anlegen.</div>';
+  up.forEach(x=>{const d=parseISO(x.datum);
+    h+='<div class="card"><div class="row" style="align-items:center"><div class="dateblock"><b>'+d.getDate()+'</b><span>'+monShort(d)+'</span></div>'+
+       '<div style="flex:1;margin-left:12px"><b style="font-size:20px">'+esc(x.arzt)+'</b><div class="meta">'+esc(x.fach||'')+(x.fach?' · ':'')+dayLabel(diffDays(d,t))+(x.zeit?', '+esc(x.zeit)+' Uhr':'')+'</div></div></div>'+
+       ((x.ort||x.tel)?'<div class="meta" style="margin-top:8px">'+esc(x.ort||'')+(x.ort&&x.tel?' · ':'')+(x.tel?'<a class="tel" href="tel:'+esc(x.tel.replace(/[^\d+]/g,''))+'">'+esc(x.tel)+'</a>':'')+'</div>':'')+
+       (x.fragen.length?'<h2 style="font-size:17px;margin:14px 0 2px">Meine Fragen</h2><ul class="q">'+x.fragen.map(f=>'<li>'+esc(f)+'</li>').join('')+'</ul>':'')+
+       (x.bring.length?'<h2 style="font-size:17px;margin:14px 0 2px">Mitbringen</h2>'+x.bring.map((b,i)=>'<label class="check"><input type="checkbox" data-bring="'+esc(x.id)+':'+i+'"'+(b.done?' checked':'')+'> '+esc(b.t)+'</label>').join(''):'')+
+       '<div class="actions" style="margin-top:14px"><button class="btn ghost small" data-ics="'+esc(x.id)+'">In Kalender</button><button class="btn ghost small" data-remind-t="'+esc(x.id)+'">Erinnerung</button></div>'+
+       '<div class="actions"><button class="btn small" style="width:100%" data-edit-t="'+esc(x.id)+'">Bearbeiten</button><button class="btn danger small" style="width:100%" data-del-t="'+esc(x.id)+'">Löschen</button></div></div>';
+  });
+  h+='<h2>Zurückliegend</h2>';
+  if(!past.length) h+='<div class="empty">Noch keine vergangenen Termine.</div>';
+  past.forEach(x=>{
+    h+='<div class="card"><div class="row"><div><b>'+esc(x.arzt)+(x.fach?', '+esc(x.fach):'')+'</b><div class="meta">'+esc(fmtDate(x.datum))+'</div></div><button class="btn ghost small" data-edit-t="'+esc(x.id)+'">'+(x.ergebnis?'Ändern':'Ergebnis')+'</button></div>'+
+       (x.ergebnis?'<div style="margin-top:8px"><span class="pill ok">Ergebnis</span> '+esc(x.ergebnis)+'</div>':'<div class="hint" style="margin-top:6px">Noch kein Ergebnis notiert.</div>')+'</div>';
+  });
+  return h;
+}
+function renderVerlauf(){
+  const t=todayDate(), list=myMeds();
+  let h='';
+  if(!list.length) return '<div class="empty">Noch keine Medikamente. Der Verlauf erscheint, sobald Einnahmen eingetragen sind.</div>';
+  const ad=adherence(14);
+  h+='<div class="card summary"><div><b>'+(ad==null?'noch keine Daten':ad+' % eingenommen')+'</b><span>in den letzten 14 Tagen</span></div></div><h2>Je Medikament</h2>';
+  list.forEach(m=>{
+    let cells='',missN=0;
+    for(let i=13;i>=0;i--){const s=dayState(m,addDays(t,-i)); if(s==='miss')missN++; cells+='<i class="'+(s||'')+'"></i>'}
+    h+='<div class="card"><b>'+esc(m.name)+' '+esc(m.staerke||'')+'</b><div class="grid14" aria-label="14 Tage, links älteste">'+cells+'</div><div class="meta">'+(missN?missN+' Tag(e) mit vergessener Einnahme':'keine Lücke')+'</div></div>';
+  });
+  h+='<div class="legend"><span><i style="background:var(--ok)"></i>genommen</span><span><i style="background:var(--due)"></i>spät</span><span><i style="background:var(--miss)"></i>vergessen</span><span><i style="background:var(--muted);opacity:.5"></i>übersprungen</span></div>';
+  h+='<h2>Für den Arzt</h2><div class="card"><p style="margin:0 0 10px">Eine Seite mit aktuellem Medikamentenplan, Einnahme der letzten 14 Tage und deinen Fragen.</p><button class="btn" data-sheet="arzt">Übersicht ansehen</button></div>';
+  return h;
+}
+
+/* ===================== Formulare (Sheets) ===================== */
+function timeChip(v){return '<span class="chip"><input type="time" name="f-z" value="'+esc(v)+'" aria-label="Uhrzeit"><button type="button" data-rm-time aria-label="Uhrzeit entfernen">×</button></span>'}
+function sheetMed(){
+  const m=editId?S.meds.find(x=>x.id===editId):null;
+  const z=m?m.zeiten:['08:00'];
+  const tage=m&&m.tage?m.tage:[];
+  return '<h3>'+(m?'Medikament bearbeiten':'Neues Medikament')+'</h3>'+
+    '<label for="f-name">Name</label><input type="text" id="f-name" value="'+esc(m?m.name:'')+'" autocomplete="off" placeholder="z. B. Bisoprolol">'+
+    '<label for="f-st">Stärke</label><input type="text" id="f-st" value="'+esc(m?m.staerke:'')+'" placeholder="z. B. 2,5 mg">'+
+    '<label for="f-form">Darreichung</label><select id="f-form">'+['Tablette','Kapsel','Tropfen','Spritze','Salbe','Sonstiges'].map(f=>'<option'+(m&&m.form===f?' selected':'')+'>'+f+'</option>').join('')+'</select>'+
+    '<label for="f-dosis">Menge pro Einnahme (Stück)</label><input type="number" id="f-dosis" min="0.25" step="0.25" value="'+(m?m.dosis:1)+'">'+
+    '<label>Uhrzeiten</label><div class="times" id="f-times">'+z.map(timeChip).join('')+'<button type="button" class="btn ghost small" data-add-time>+ Uhrzeit</button></div>'+
+    '<label>An welchen Tagen?</label><div class="wdays">'+[1,2,3,4,5,6,0].map(i=>'<label><input type="checkbox" name="f-wd" value="'+i+'"'+(tage.indexOf(i)>=0?' checked':'')+'><span>'+WT[i]+'</span></label>').join('')+'</div><p class="hint">Nichts gewählt = jeden Tag.</p>'+
+    '<label for="f-zw">Wofür?</label><input type="text" id="f-zw" value="'+esc(m?m.zweck:'')+'" placeholder="z. B. Blutdruck">'+
+    '<label for="f-hi">Hinweis</label><input type="text" id="f-hi" value="'+esc(m?m.hinweis:'')+'" placeholder="z. B. zum Essen">'+
+    '<label for="f-bes">Vorrat (Stück zu Hause)</label><input type="number" id="f-bes" min="0" value="'+(m&&m.bestand!=null?m.bestand:'')+'" placeholder="leer = nicht zählen">'+
+    '<label for="f-warn">Warnung bei Vorrat unter (Tage)</label><input type="number" id="f-warn" min="1" value="'+(m&&m.warnTage?m.warnTage:10)+'">'+
+    '<div class="actions"><button class="btn ghost" data-close>Abbrechen</button><button class="btn" data-save="med">Speichern</button></div>'+
+    (m?'<div class="actions"><button class="btn ghost" data-end-med>Beenden (Verlauf bleibt)</button><button class="btn danger" data-del-med>Löschen</button></div>':'');
+}
+function sheetTermin(){
+  const x=editId?S.termine.find(a=>a.id===editId):null;
+  return '<h3>'+(x?'Termin bearbeiten':'Neuer Arzttermin')+'</h3>'+
+    '<label for="t-arzt">Arzt oder Praxis</label><input type="text" id="t-arzt" value="'+esc(x?x.arzt:'')+'" placeholder="z. B. Dr. Schmidt">'+
+    '<label for="t-fach">Fachrichtung</label><input type="text" id="t-fach" list="faecher" value="'+esc(x?x.fach:'')+'" placeholder="z. B. Hausarzt"><datalist id="faecher"><option>Hausarzt</option><option>Augenarzt</option><option>Kardiologe</option><option>Orthopäde</option><option>Zahnarzt</option><option>Hautarzt</option><option>Urologe</option><option>Radiologie</option></datalist>'+
+    '<label for="t-dat">Datum</label><input type="date" id="t-dat" value="'+esc(x?x.datum:'')+'">'+
+    '<label for="t-zeit">Uhrzeit</label><input type="time" id="t-zeit" value="'+esc(x?x.zeit:'09:00')+'">'+
+    '<label for="t-ort">Ort</label><input type="text" id="t-ort" value="'+esc(x?x.ort:'')+'" placeholder="Straße, Stockwerk">'+
+    '<label for="t-tel">Telefon</label><input type="tel" id="t-tel" value="'+esc(x?x.tel:'')+'">'+
+    '<label for="t-fr">Meine Fragen (eine pro Zeile)</label><textarea id="t-fr">'+esc(x?x.fragen.join('\n'):'')+'</textarea>'+
+    '<label for="t-br">Mitbringen (eine pro Zeile)</label><textarea id="t-br" placeholder="z. B. Medikamentenplan">'+esc(x?x.bring.map(b=>b.t).join('\n'):'')+'</textarea>'+
+    '<label for="t-erg">Ergebnis nach dem Besuch</label><textarea id="t-erg" placeholder="Was hat der Arzt gesagt? Nächste Kontrolle?">'+esc(x?x.ergebnis:'')+'</textarea>'+
+    '<div class="actions"><button class="btn ghost" data-close>Abbrechen</button><button class="btn" data-save="termin">Speichern</button></div>';
+}
+function sheetArzt(){
+  const t=todayDate(), p=person();
+  const ad=adherence(14);
+  const up=myTermine().filter(x=>x.datum>=iso(t)).sort((a,b)=>(a.datum+a.zeit).localeCompare(b.datum+b.zeit))[0];
+  return '<h3>Übersicht für den Arzt</h3><p class="meta">'+esc(p.name)+' · Stand '+esc(fmtLong(t))+'</p>'+overviewTable(up)+
+    '<div class="actions"><button class="btn ghost" data-share-arzt>Teilen</button><button class="btn ghost" data-print>Drucken</button></div><div class="actions one"><button class="btn" data-close>Schließen</button></div>';
+}
+function overviewTable(up){
+  const rows=myMeds().map(m=>'<tr><td style="padding:6px 0;border-bottom:1px solid var(--line)"><b>'+esc(m.name)+' '+esc(m.staerke||'')+'</b><br><span class="meta">'+esc(m.zweck||'')+(m.hinweis?' · '+esc(m.hinweis):'')+'</span></td><td style="padding:6px 0;border-bottom:1px solid var(--line);text-align:right">'+(m.dosis||1)+'× '+m.zeiten.join(' · ')+(m.tage&&m.tage.length?'<br><span class="meta">'+m.tage.slice().sort().map(i=>WT[i]).join(' ')+'</span>':'')+'</td></tr>').join('');
+  const ad=adherence(14);
+  return '<table style="width:100%;border-collapse:collapse;font-size:16px">'+(rows||'<tr><td>Keine Medikamente eingetragen.</td></tr>')+'</table>'+
+    '<p style="margin:12px 0 4px"><b>Einnahme letzte 14 Tage:</b> '+(ad==null?'noch keine Daten':ad+' %')+'</p>'+
+    (up&&up.fragen.length?'<p style="margin:0"><b>Meine Fragen:</b></p><ul class="q">'+up.fragen.map(f=>'<li>'+esc(f)+'</li>').join('')+'</ul>':'');
+}
+function sheetSet(){
+  const p0=S.personen[0], p1=S.personen[1];
+  const sicher=S.letzteSicherung?fmtDate(S.letzteSicherung):'noch nie';
+  const slots={}; myMeds().forEach(m=>m.zeiten.forEach(z=>{(slots[z]=slots[z]||[]).push(m.name+' '+(m.staerke||''))}));
+  const zeiten=Object.keys(slots).sort();
+  return '<h3>Einstellungen</h3>'+
+    '<label for="s-n0">Name Person 1</label><input type="text" id="s-n0" value="'+esc(p0?p0.name:'')+'">'+
+    '<label for="s-n1">Name Person 2 (leer lassen, wenn nur eine Person)</label><input type="text" id="s-n1" value="'+esc(p1?p1.name:'')+'">'+
+    '<div class="actions one"><button class="btn" data-save="namen">Namen speichern</button></div>'+
+    '<h3 style="margin-top:22px">Erinnerungen auf dem iPhone</h3>'+
+    '<p class="hint">Diese Seite klingelt nicht selbst. Für feste Einnahmezeiten legst du einmal je Uhrzeit eine tägliche Erinnerung an:</p>'+
+    (zeiten.length?zeiten.map(z=>'<div class="card" style="margin:8px 0"><b>'+esc(z)+' Uhr</b><div class="meta">'+esc(slots[z].join(', '))+'</div><button class="btn ghost small" style="margin-top:8px" data-remind-z="'+esc(z)+'">In Erinnerungen anlegen</button></div>').join(''):'<p class="hint">Sobald ein Medikament eingetragen ist, erscheinen hier die Uhrzeiten.</p>')+
+    '<p class="hint">Im Teilen-Fenster „Erinnerungen“ wählen, dann in der Erinnerungen-App die Uhrzeit setzen und „Wiederholen: Täglich“ einstellen. Arzttermine kommen über „In Kalender“ mit zwei Warnungen (am Vortag und 2 Stunden vorher).</p>'+
+    '<h3 style="margin-top:22px">Sicherung</h3>'+
+    '<p class="hint">Alle Daten liegen nur auf diesem Gerät. Letzte Sicherung: '+esc(sicher)+'. Bei Gerätewechsel oder Löschen der Browserdaten gehen sie verloren, wenn keine Sicherung existiert.</p>'+
+    '<div class="actions"><button class="btn ghost" data-export>Sichern (Datei)</button><button class="btn ghost" data-import>Datei einlesen</button></div>'+
+    '<input type="file" id="s-file" accept=".json,application/json,text/plain" style="display:none">'+
+    '<div class="actions one" style="margin-top:22px"><button class="btn danger" data-wipe>Alle Daten auf diesem Gerät löschen</button></div>'+
+    '<div class="actions one"><button class="btn" data-close>Schließen</button></div>';
+}
+function sheetWelcome(){
+  return '<h3>Willkommen</h3><p>Diese Mappe verwaltet Medikamente und Arzttermine. Alle Daten bleiben auf diesem Gerät. Wie heißen die beiden Personen?</p>'+
+    '<label for="w-n0">Person 1</label><input type="text" id="w-n0" placeholder="Vorname" autocomplete="off">'+
+    '<label for="w-n1">Person 2 (optional)</label><input type="text" id="w-n1" placeholder="Vorname" autocomplete="off">'+
+    '<div class="actions one"><button class="btn" data-save="welcome">Los geht\'s</button></div>'+
+    '<p class="hint">Tipp: In Safari auf „Teilen“, dann „Zum Home-Bildschirm“ tippen. Dann öffnet sich die Mappe wie eine App, und iOS behält die Daten zuverlässiger.</p>';
+}
+
+/* ===================== Aktionen ===================== */
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3200)}
+function openSheet(name,id){sheet=name;editId=id||null;draw()}
+function closeSheet(){sheet=null;editId=null;draw()}
+function download(name,text,type){
+  try{
+    const b=new Blob([text],{type:type||'text/plain'}),u=URL.createObjectURL(b),a=document.createElement('a');
+    a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(u)},1500);return true;
+  }catch(e){return false}
+}
+function icsText(x){
+  const d=x.datum.replace(/-/g,''), z=(x.zeit||'09:00').replace(':','')+'00';
+  const end=(()=>{const m=mins(x.zeit||'09:00')+45;return pad(Math.floor(m/60)%24)+pad(m%60)+'00'})();
+  const e=s=>String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
+  const desc=(x.fragen.length?'Meine Fragen:\n- '+x.fragen.join('\n- ')+'\n':'')+(x.bring.length?'Mitbringen:\n- '+x.bring.map(b=>b.t).join('\n- '):'');
+  return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Gesundheitsmappe//DE','CALSCALE:GREGORIAN','BEGIN:VEVENT',
+    'UID:'+x.id+'@gesundheitsmappe','DTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,''),
+    'DTSTART:'+d+'T'+z,'DTEND:'+d+'T'+end,'SUMMARY:'+e('Arzttermin: '+x.arzt+(x.fach?' ('+x.fach+')':'')),
+    'LOCATION:'+e(x.ort),'DESCRIPTION:'+e(desc),
+    'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:Arzttermin morgen','TRIGGER:-P1D','END:VALARM',
+    'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:Arzttermin in 2 Stunden','TRIGGER:-PT2H','END:VALARM',
+    'END:VEVENT','END:VCALENDAR'].join('\r\n');
+}
+async function shareText(title,text){
+  if(navigator.share){try{await navigator.share({title:title,text:text});return}catch(e){if(e&&e.name==='AbortError')return}}
+  try{await navigator.clipboard.writeText(title+'\n'+text);toast('Text kopiert. In Erinnerungen einfügen.')}catch(e){toast('Teilen nicht möglich auf diesem Gerät.')}
+}
+function saveMed(){
+  const name=$('#f-name').value.trim(); if(!name){$('#f-name').focus();return}
+  const z=$$('input[name="f-z"]').map(i=>i.value).filter(Boolean); if(!z.length) z.push('08:00');
+  const uniq=[...new Set(z)].sort();
+  const tage=$$('input[name="f-wd"]:checked').map(i=>+i.value); const bes=$('#f-bes').value;
+  const rec={name:name,staerke:$('#f-st').value.trim(),form:$('#f-form').value,dosis:+$('#f-dosis').value||1,zeiten:uniq,tage:tage.length&&tage.length<7?tage:[],
+    zweck:$('#f-zw').value.trim(),hinweis:$('#f-hi').value.trim(),bestand:bes===''?null:+bes,warnTage:+$('#f-warn').value||10};
+  if(editId){Object.assign(S.meds.find(m=>m.id===editId),rec)}
+  else S.meds.push(Object.assign({id:uid(),pid:S.aktiv,aktiv:true,seit:iso(todayDate()),bis:null},rec));
+  save(); sheet=null; editId=null; draw(); toast('Gespeichert');
+}
+function saveTermin(){
+  const arzt=$('#t-arzt').value.trim(); if(!arzt){$('#t-arzt').focus();return}
+  const dat=$('#t-dat').value; if(!dat){$('#t-dat').focus();return}
+  const lines=id=>$(id).value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const old=editId?S.termine.find(a=>a.id===editId):null;
+  const bring=lines('#t-br').map(t=>{const o=old&&old.bring.find(b=>b.t===t);return{t:t,done:o?o.done:false}});
+  const rec={arzt:arzt,fach:$('#t-fach').value.trim(),datum:dat,zeit:$('#t-zeit').value||'',ort:$('#t-ort').value.trim(),tel:$('#t-tel').value.trim(),
+    fragen:lines('#t-fr'),bring:bring,ergebnis:$('#t-erg').value.trim()};
+  if(old) Object.assign(old,rec); else S.termine.push(Object.assign({id:uid(),pid:S.aktiv},rec));
+  save(); sheet=null; editId=null; view='termine'; draw(); toast('Gespeichert');
+}
+function doExport(){
+  const name='gesundheitsmappe-sicherung-'+iso(todayDate())+'.json';
+  S.letzteSicherung=iso(todayDate()); save();
+  if(download(name,JSON.stringify(S,null,1),'application/json')) toast('Sicherung wird gespeichert');
+  else toast('Speichern nicht möglich');
+  draw();
+}
+function doImport(file){
+  const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result); if(!d||d.v!==1||!Array.isArray(d.personen)) throw 0; S=d; save(); sheet=null; view='heute'; draw(); toast('Daten eingelesen')}catch(e){toast('Das ist keine gültige Sicherung.')}};
+  r.readAsText(file);
+}
+
+/* ===================== Zeichnen ===================== */
+function draw(){
+  const titles={heute:'Heute',meds:'Medikamente',termine:'Arzttermine',verlauf:'Verlauf'};
+  $('#ttl').textContent=titles[view]; $('#dt').textContent=fmtLong(todayDate());
+  const ps=$('#persons');
+  ps.innerHTML=S.personen.length>1?S.personen.map(p=>'<button class="person" data-person="'+esc(p.id)+'" aria-pressed="'+(p.id===S.aktiv)+'">'+esc(p.name)+'</button>').join(''):'';
+  $('#view').innerHTML={heute:renderHeute,meds:renderMeds,termine:renderTermine,verlauf:renderVerlauf}[view]();
+  $$('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.v===view));
+  $('#fab').hidden=!(view==='meds'||view==='termine'||(view==='heute'&&!myMeds().length&&!myTermine().length));
+  $('#fab').setAttribute('aria-label',view==='termine'?'Termin hinzufügen':'Medikament hinzufügen');
+  const layer=$('#layer'); layer.innerHTML='';
+  let sh=sheet; if(!S.personen.length) sh='welcome';
+  if(sh){
+    const body={med:sheetMed,termin:sheetTermin,arzt:sheetArzt,set:sheetSet,welcome:sheetWelcome}[sh]();
+    layer.innerHTML='<div class="sheet-wrap"><div class="sheet" role="dialog" aria-modal="true">'+body+'</div></div>';
+    const f=$('input,select',layer); if(f&&sh!=='arzt'&&sh!=='set') try{f.focus({preventScroll:true})}catch(e){}
+  }
+  $('#printarea').innerHTML=sheet==='arzt'?'<h2>Übersicht für den Arzt: '+esc(person()?person().name:'')+'</h2><p>Stand '+esc(fmtLong(todayDate()))+'</p>'+overviewTable(myTermine().filter(x=>x.datum>=iso(todayDate()))[0]):'';
+}
+
+/* ===================== Ereignisse ===================== */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-take],[data-skip],[data-go],[data-sheet],[data-close],[data-save],[data-edit-med],[data-edit-t],[data-del-t],[data-ics],[data-remind-t],[data-remind-z],[data-add-time],[data-rm-time],[data-end-med],[data-del-med],[data-export],[data-import],[data-wipe],[data-print],[data-share-arzt],[data-person],.tab,#fab,#btn-set');
+  if(!t) return;
+  const d=t.dataset;
+  if(d.take||d.skip){const p=(d.take||d.skip).split('|'); const m=S.meds.find(x=>x.id===p[0]); if(m){setTaken(m,p[1],p[2],d.take?'genommen':'übersprungen'); draw()}}
+  else if(d.go){view=d.go;draw()}
+  else if(d.person){S.aktiv=d.person;save();draw()}
+  else if(d.sheet){openSheet(d.sheet)}
+  else if('close' in d){closeSheet()}
+  else if(d.save==='med'){saveMed()}
+  else if(d.save==='termin'){saveTermin()}
+  else if(d.save==='namen'){
+    const n0=$('#s-n0').value.trim(), n1=$('#s-n1').value.trim(); if(!n0){$('#s-n0').focus();return}
+    S.personen[0].name=n0; if(n1){ if(S.personen[1]) S.personen[1].name=n1; else S.personen.push({id:uid(),name:n1}) } else if(S.personen[1]&&!n1){toast('Person 2 bleibt bestehen. Zum Entfernen die Daten löschen.')}
+    save(); draw(); toast('Namen gespeichert');
+  }
+  else if(d.save==='welcome'){
+    const n0=$('#w-n0').value.trim(); if(!n0){$('#w-n0').focus();return}
+    const n1=$('#w-n1').value.trim(); S.personen=[{id:uid(),name:n0}]; if(n1) S.personen.push({id:uid(),name:n1}); S.aktiv=S.personen[0].id; save(); sheet=null; draw();
+  }
+  else if(d.editMed){openSheet('med',d.editMed)}
+  else if(d.editT){openSheet('termin',d.editT)}
+  else if(d.delT){const x=S.termine.find(a=>a.id===d.delT); if(x&&t.dataset.confirm!=='1'){t.dataset.confirm='1';t.textContent='Wirklich löschen?';setTimeout(()=>{t.dataset.confirm='';t.textContent='Löschen'},3500)} else if(x){S.termine=S.termine.filter(a=>a!==x);save();draw();toast('Gelöscht')}}
+  else if(d.ics){const x=S.termine.find(a=>a.id===d.ics); if(x){ if(!download('arzttermin-'+x.datum+'.ics',icsText(x),'text/calendar')) toast('Speichern nicht möglich') }}
+  else if(d.remindT){const x=S.termine.find(a=>a.id===d.remindT); if(x) shareText('Arzttermin '+x.arzt+', '+fmtDate(x.datum)+(x.zeit?' '+x.zeit+' Uhr':''),(x.ort?x.ort+'\n':'')+(x.fragen.length?'Fragen: '+x.fragen.join('; '):''))}
+  else if(d.remindZ){const z=d.remindZ; const names=myMeds().filter(m=>m.zeiten.indexOf(z)>=0).map(m=>(m.dosis||1)+'× '+m.name+' '+(m.staerke||'')); shareText('Tabletten '+z+' Uhr ('+person().name+')',names.join(', '))}
+  else if('addTime' in d){const box=$('#f-times'); const b=t; b.insertAdjacentHTML('beforebegin',timeChip('12:00'))}
+  else if('rmTime' in d){const c=t.closest('.chip'); if($$('.chip').length>1) c.remove()}
+  else if('endMed' in d){const m=S.meds.find(x=>x.id===editId); if(m){m.aktiv=false;m.bis=iso(todayDate());save();closeSheet();toast('Beendet')}}
+  else if('delMed' in d){ if(t.dataset.confirm!=='1'){t.dataset.confirm='1';t.textContent='Wirklich löschen? Verlauf geht verloren';setTimeout(()=>{t.dataset.confirm='';t.textContent='Löschen'},4000)} else {S.meds=S.meds.filter(m=>m.id!==editId);S.log=S.log.filter(l=>l.mid!==editId);save();closeSheet();toast('Gelöscht')}}
+  else if('export' in d){doExport()}
+  else if('import' in d){$('#s-file').click()}
+  else if('wipe' in d){ if(t.dataset.confirm!=='1'){t.dataset.confirm='1';t.textContent='Wirklich ALLES löschen? Nochmal tippen';setTimeout(()=>{t.dataset.confirm='';t.textContent='Alle Daten auf diesem Gerät löschen'},4000)} else {S=blank();save();sheet=null;view='heute';draw()}}
+  else if('print' in d){window.print()}
+  else if('shareArzt' in d){const up=myTermine().filter(x=>x.datum>=iso(todayDate()))[0]; shareText('Medikamentenplan '+person().name,myMeds().map(m=>'- '+m.name+' '+(m.staerke||'')+': '+(m.dosis||1)+'× '+m.zeiten.join(', ')+(m.zweck?' ('+m.zweck+')':'')).join('\n')+(up&&up.fragen.length?'\nFragen:\n- '+up.fragen.join('\n- '):''))}
+  else if(t.classList.contains('tab')){view=d.v;sheet=null;draw();$('#view').scrollTop=0}
+  else if(t.id==='fab'){openSheet(view==='termine'?'termin':'med')}
+  else if(t.id==='btn-set'){openSheet('set')}
+});
+document.addEventListener('change',e=>{
+  const c=e.target.closest('[data-bring]');
+  if(c){const p=c.dataset.bring.split(':'); const x=S.termine.find(a=>a.id===p[0]); if(x&&x.bring[+p[1]]){x.bring[+p[1]].done=c.checked;save()}}
+  if(e.target.id==='s-file'&&e.target.files[0]) doImport(e.target.files[0]);
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&sheet)closeSheet()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!sheet)draw()});
+setInterval(()=>{if(!document.hidden&&!sheet&&view==='heute')draw()},60000);
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+draw();
+window.__GM={get:()=>S,set:v=>{S=v;save();draw()}};
+})();
+</script>
+</body>
+</html>
