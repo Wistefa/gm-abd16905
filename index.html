@@ -45,9 +45,9 @@ button,input,select,textarea{font:inherit;color:inherit}
 main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px max(14px,env(safe-area-inset-right,0px)) 110px max(14px,env(safe-area-inset-left,0px))}
 h2{font-size:20px;margin:22px 0 8px}
 h2:first-child{margin-top:4px}
-.tabs{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);background:var(--surface);
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);background:var(--surface);
   padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
-.tab{border:0;background:transparent;padding:9px 2px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:14px;color:var(--muted);cursor:pointer;min-height:62px}
+.tab{border:0;background:transparent;padding:9px 2px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:13px;color:var(--muted);cursor:pointer;min-height:62px}
 .tab svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .tab[aria-selected="true"]{color:var(--accent);font-weight:700}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
@@ -105,7 +105,7 @@ h2:first-child{margin-top:4px}
 .sheet{background:var(--surface);border-radius:24px 24px 0 0;padding:18px 18px calc(22px + env(safe-area-inset-bottom,0px));width:100%;max-width:560px;max-height:94%;overflow-y:auto}
 .sheet h3{margin:0 0 10px;font-size:23px}
 label{display:block;font-weight:700;font-size:16px;margin:12px 0 4px}
-input[type=text],input[type=date],input[type=time],input[type=number],input[type=tel],select,textarea{width:100%;min-height:50px;border:2px solid var(--line);border-radius:12px;padding:8px 12px;background:var(--surface);font-size:18px}
+input[type=text],input[type=date],input[type=time],input[type=number],input[type=tel],input[type=email],select,textarea{width:100%;min-height:50px;border:2px solid var(--line);border-radius:12px;padding:8px 12px;background:var(--surface);font-size:18px}
 textarea{min-height:84px}
 .times{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .times .chip{display:flex;gap:8px;align-items:center;border:2px solid var(--line);border-radius:12px;padding:6px 8px 6px 12px;background:var(--surface)}
@@ -123,6 +123,13 @@ textarea{min-height:84px}
 .hint{color:var(--muted);font-size:15px;margin:4px 0 0}
 ul.q{margin:0;padding-left:20px}
 .tel{color:var(--accent);font-weight:700}
+.dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:8px 0 0;font-size:16px}
+.dl dt{color:var(--muted)}
+.dl dd{margin:0;overflow-wrap:anywhere}
+.mono{font-family:ui-monospace,Menlo,monospace;font-size:15px;letter-spacing:.02em}
+.copy{border:0;background:transparent;color:var(--accent);font-weight:700;cursor:pointer;padding:0 0 0 8px;font-size:15px;text-decoration:underline}
+.sec{font-size:17px;margin:20px 0 0;color:var(--accent)}
+.warn{color:var(--miss);font-size:15px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--surface);padding:12px 18px;border-radius:14px;z-index:30;max-width:90%;font-size:16px}
 .print-only{display:none}
 @media print{
@@ -153,6 +160,7 @@ ul.q{margin:0;padding-left:20px}
     <button class="tab" role="tab" data-v="heute"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Heute</button>
     <button class="tab" role="tab" data-v="meds"><svg viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="7" rx="3.5" transform="rotate(-35 12 12.5)"/><path d="m9.4 8.8 5 5.8"/></svg>Medikamente</button>
     <button class="tab" role="tab" data-v="termine"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Termine</button>
+    <button class="tab" role="tab" data-v="aerzte"><svg viewBox="0 0 24 24"><path d="M6 3v6a4 4 0 0 0 8 0V3"/><path d="M10 13v2a5 5 0 0 0 10 0v-2"/><circle cx="20" cy="11" r="2"/></svg>Ärzte</button>
     <button class="tab" role="tab" data-v="verlauf"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l4-5 3 3 5-7"/></svg>Verlauf</button>
   </nav>
   <div id="printarea" class="print-only"></div>
@@ -184,9 +192,9 @@ function slotName(t){const m=mins(t);return m<11*60?'Morgens':m<15*60?'Mittags':
 /* ===================== Speicher (nur auf diesem Gerät) ===================== */
 const KEY='gesundheitsmappe.v1';
 let S=load();
-function blank(){return{v:1,personen:[],aktiv:null,meds:[],log:[],termine:[],letzteSicherung:null,angelegt:iso(todayDate())}}
+function blank(){return{v:1,personen:[],aktiv:null,meds:[],log:[],termine:[],aerzte:[],letzteSicherung:null,angelegt:iso(todayDate())}}
 function load(){
-  try{const r=localStorage.getItem(KEY); if(r){const d=JSON.parse(r); if(d&&d.v===1) return d}}catch(e){}
+  try{const r=localStorage.getItem(KEY); if(r){const d=JSON.parse(r); if(d&&d.v===1){if(!Array.isArray(d.aerzte))d.aerzte=[]; return d}}}catch(e){}
   return blank();
 }
 let storageOk=true;
@@ -335,6 +343,81 @@ function renderVerlauf(){
   return h;
 }
 
+/* ===================== Ärzte (Stammdaten, für beide Personen gemeinsam) ===================== */
+const AFELD=[['praxis','Praxis / Name'],['arzt','Arzt / Ärztin'],['fach','Fachrichtung'],['strasse','Straße'],['plz','PLZ'],['ort','Ort'],
+  ['tel','Telefon'],['fax','Fax'],['email','E-Mail'],['web','Internet'],['zeiten','Sprechzeiten'],
+  ['abrechnung','Rechnungssteller (falls abweichend, z. B. Abrechnungsstelle)'],['kontoinhaber','Kontoinhaber'],['iban','IBAN'],['bic','BIC'],['bank','Bank'],
+  ['steuernr','Steuer-Nr. / USt-IdNr.'],['notiz','Notiz']];
+function ibanOk(i){const s=String(i||'').replace(/\s+/g,'').toUpperCase(); if(!s) return true; if(!/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/.test(s)) return false;
+  const r=(s.slice(4)+s.slice(0,4)).replace(/[A-Z]/g,c=>c.charCodeAt(0)-55); let m=0; for(const ch of r){m=(m*10+(+ch))%97} return m===1}
+const ibanFmt=i=>String(i||'').replace(/\s+/g,'').toUpperCase().replace(/(.{4})/g,'$1 ').trim();
+const telLink=t=>'<a class="tel" href="tel:'+esc(String(t).replace(/[^\d+]/g,''))+'">'+esc(t)+'</a>';
+function arztName(a){return a.praxis||a.arzt||'ohne Namen'}
+function renderAerzte(){
+  const list=(S.aerzte||[]).slice().sort((a,b)=>arztName(a).localeCompare(arztName(b),'de'));
+  let h='<h2>Ärzte und Praxen</h2><p class="hint" style="margin-top:0">Gilt für '+(S.personen.length>1?'beide Personen':'alle')+'. Kunden- bzw. Patientennummer je Person.</p>';
+  if(!list.length) h+='<div class="empty">Noch keine Praxis eingetragen. Mit der Plus-Taste anlegen oder unter Einstellungen eine Ärzte-Datei einlesen.</div>';
+  list.forEach(a=>{
+    const adr=[a.strasse,[a.plz,a.ort].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+    const nr=S.personen.map(p=>(a.kundennr||{})[p.id]?[p.name,(a.kundennr||{})[p.id]]:null).filter(Boolean);
+    let dl='';
+    const row=(k,v)=>{if(v) dl+='<dt>'+k+'</dt><dd>'+v+'</dd>'};
+    row('Telefon',a.tel?telLink(a.tel):''); row('Fax',esc(a.fax)); row('E-Mail',a.email?'<a class="tel" href="mailto:'+esc(a.email)+'">'+esc(a.email)+'</a>':'');
+    row('Adresse',adr?'<a class="tel" href="https://maps.apple.com/?q='+encodeURIComponent(adr)+'" target="_blank" rel="noopener">'+esc(adr)+'</a>':'');
+    row('Sprechzeiten',esc(a.zeiten));
+    nr.forEach(x=>row('Kd.-Nr. '+esc(x[0]),'<span class="mono">'+esc(x[1])+'</span><button class="copy" data-copy="'+esc(x[1])+'">kopieren</button>'));
+    if(a.iban||a.abrechnung||a.kontoinhaber){
+      row('Rechnung von',esc(a.abrechnung)); row('Inhaber',esc(a.kontoinhaber));
+      row('IBAN',a.iban?'<span class="mono">'+esc(ibanFmt(a.iban))+'</span><button class="copy" data-copy="'+esc(String(a.iban).replace(/\s+/g,''))+'">kopieren</button>'+(ibanOk(a.iban)?'':'<br><span class="warn">IBAN-Prüfziffer stimmt nicht</span>'):'');
+      row('BIC',a.bic?'<span class="mono">'+esc(a.bic)+'</span>':''); row('Bank',esc(a.bank));
+    }
+    row('Notiz',esc(a.notiz));
+    h+='<div class="card"><div class="row"><div><b style="font-size:20px">'+esc(arztName(a))+'</b><div class="meta">'+esc([a.praxis&&a.arzt&&a.arzt!==a.praxis?a.arzt:'',a.fach].filter(Boolean).join(' · '))+'</div></div>'+
+       '<button class="btn ghost small" data-edit-a="'+esc(a.id)+'">Bearbeiten</button></div><dl class="dl">'+dl+'</dl></div>';
+  });
+  return h;
+}
+function sheetAerzt(){
+  const a=editId?S.aerzte.find(x=>x.id===editId):null, v=k=>esc(a&&a[k]!=null?a[k]:'');
+  const inp=(k,lab,typ,ph)=>'<label for="a-'+k+'">'+lab+'</label><input type="'+(typ||'text')+'" id="a-'+k+'" value="'+v(k)+'"'+(ph?' placeholder="'+esc(ph)+'"':'')+' autocomplete="off">';
+  return '<h3>'+(a?'Praxis bearbeiten':'Neue Praxis')+'</h3>'+
+    inp('praxis','Praxis / Name','text','z. B. Hausarztpraxis am Markt')+inp('arzt','Arzt / Ärztin','text','z. B. Dr. med. Anna Muster')+
+    '<label for="a-fach">Fachrichtung</label><input type="text" id="a-fach" list="faecher" value="'+v('fach')+'">'+
+    inp('strasse','Straße')+'<div class="actions" style="margin-top:0;grid-template-columns:1fr 2fr"><div>'+inp('plz','PLZ')+'</div><div>'+inp('ort','Ort')+'</div></div>'+
+    inp('tel','Telefon','tel')+inp('fax','Fax','tel')+inp('email','E-Mail','email')+inp('web','Internet')+inp('zeiten','Sprechzeiten','text','z. B. Mo–Fr 8–12 Uhr')+
+    '<h3 class="sec">Kunden- / Patientennummer</h3>'+S.personen.map(p=>'<label for="a-kn-'+esc(p.id)+'">'+esc(p.name)+'</label><input type="text" id="a-kn-'+esc(p.id)+'" data-kn="'+esc(p.id)+'" value="'+esc(a&&a.kundennr?a.kundennr[p.id]||'':'')+'" autocomplete="off">').join('')+
+    '<h3 class="sec">Bankverbindung für Rechnungen</h3>'+inp('abrechnung','Rechnungssteller (falls nicht die Praxis)','text','z. B. PVS, Abrechnungsstelle')+inp('kontoinhaber','Kontoinhaber')+
+    inp('iban','IBAN','text','DE.. .... .... ....')+inp('bic','BIC')+inp('bank','Bank')+inp('steuernr','Steuer-Nr. / USt-IdNr.')+
+    '<label for="a-notiz">Notiz</label><textarea id="a-notiz">'+v('notiz')+'</textarea>'+
+    '<div class="actions"><button class="btn ghost" data-close>Abbrechen</button><button class="btn" data-save="aerzt">Speichern</button></div>'+
+    (a?'<div class="actions one"><button class="btn danger" data-del-a>Löschen</button></div>':'');
+}
+function saveAerzt(){
+  const g=k=>{const el=$('#a-'+k);return el?el.value.trim():''};
+  const rec={}; AFELD.forEach(f=>{rec[f[0]]=g(f[0])});
+  if(!rec.praxis&&!rec.arzt){$('#a-praxis').focus();return}
+  if(rec.iban){rec.iban=rec.iban.replace(/\s+/g,'').toUpperCase(); if(!ibanOk(rec.iban)&&!confirm('Die IBAN-Prüfziffer stimmt nicht. Trotzdem speichern?')) return}
+  rec.bic=rec.bic.toUpperCase();
+  const kn={}; $$('[data-kn]').forEach(i=>{if(i.value.trim()) kn[i.dataset.kn]=i.value.trim()}); rec.kundennr=kn;
+  const old=editId?S.aerzte.find(x=>x.id===editId):null;
+  if(old) Object.assign(old,rec); else S.aerzte.push(Object.assign({id:uid()},rec));
+  save(); sheet=null; editId=null; view='aerzte'; draw(); toast('Gespeichert');
+}
+/* Ärzte-Datei: {"gesundheitsmappe_aerzte":1,"aerzte":[{praxis,...,"kundennr":{"<Vorname>":"123"}}]} – ergänzt, ersetzt nichts */
+function importAerzte(d){
+  let neu=0,akt=0;
+  (d.aerzte||[]).forEach(x=>{
+    const rec={}; AFELD.forEach(f=>{if(x[f[0]]!=null) rec[f[0]]=String(x[f[0]]).trim()});
+    if(rec.iban) rec.iban=rec.iban.replace(/\s+/g,'').toUpperCase();
+    const kn={}; Object.keys(x.kundennr||{}).forEach(n=>{const v1=w=>String(w||'').toLowerCase().trim().split(/\s+/)[0]; const p=S.personen.find(q=>q.name.toLowerCase()===n.toLowerCase())||S.personen.find(q=>v1(q.name)===v1(n))||(S.personen.length===1?S.personen[0]:null); if(p&&x.kundennr[n]) kn[p.id]=String(x.kundennr[n])});
+    const key=s=>String(s||'').toLowerCase().replace(/\s+/g,' ').trim();
+    const old=S.aerzte.find(a=>key(arztName(a))===key(rec.praxis||rec.arzt));
+    if(old){Object.keys(rec).forEach(k=>{if(rec[k])old[k]=rec[k]}); old.kundennr=Object.assign({},old.kundennr||{},kn); akt++}
+    else {S.aerzte.push(Object.assign({id:uid()},rec,{kundennr:kn})); neu++}
+  });
+  save(); sheet=null; view='aerzte'; draw(); toast(neu+' Praxis(en) neu, '+akt+' aktualisiert');
+}
+
 /* ===================== Formulare (Sheets) ===================== */
 function timeChip(v){return '<span class="chip"><input type="time" name="f-z" value="'+esc(v)+'" aria-label="Uhrzeit"><button type="button" data-rm-time aria-label="Uhrzeit entfernen">×</button></span>'}
 function sheetMed(){
@@ -358,7 +441,8 @@ function sheetMed(){
 function sheetTermin(){
   const x=editId?S.termine.find(a=>a.id===editId):null;
   return '<h3>'+(x?'Termin bearbeiten':'Neuer Arzttermin')+'</h3>'+
-    '<label for="t-arzt">Arzt oder Praxis</label><input type="text" id="t-arzt" value="'+esc(x?x.arzt:'')+'" placeholder="z. B. Dr. Schmidt">'+
+    '<label for="t-arzt">Arzt oder Praxis</label><input type="text" id="t-arzt" list="aerzteliste" value="'+esc(x?x.arzt:'')+'" placeholder="z. B. Dr. Schmidt"><datalist id="aerzteliste">'+(S.aerzte||[]).map(a=>'<option value="'+esc(arztName(a))+'">').join('')+'</datalist>'+
+    ((S.aerzte||[]).length?'<p class="hint">Aus „Ärzte“ wählen: Fach, Ort und Telefon werden übernommen.</p>':'')+
     '<label for="t-fach">Fachrichtung</label><input type="text" id="t-fach" list="faecher" value="'+esc(x?x.fach:'')+'" placeholder="z. B. Hausarzt"><datalist id="faecher"><option>Hausarzt</option><option>Augenarzt</option><option>Kardiologe</option><option>Orthopäde</option><option>Zahnarzt</option><option>Hautarzt</option><option>Urologe</option><option>Radiologie</option></datalist>'+
     '<label for="t-dat">Datum</label><input type="date" id="t-dat" value="'+esc(x?x.datum:'')+'">'+
     '<label for="t-zeit">Uhrzeit</label><input type="time" id="t-zeit" value="'+esc(x?x.zeit:'09:00')+'">'+
@@ -399,6 +483,7 @@ function sheetSet(){
     '<h3 style="margin-top:22px">Sicherung</h3>'+
     '<p class="hint">Alle Daten liegen nur auf diesem Gerät. Letzte Sicherung: '+esc(sicher)+'. Bei Gerätewechsel oder Löschen der Browserdaten gehen sie verloren, wenn keine Sicherung existiert.</p>'+
     '<div class="actions"><button class="btn ghost" data-export>Sichern (Datei)</button><button class="btn ghost" data-import>Datei einlesen</button></div>'+
+    '<p class="hint">„Datei einlesen“ nimmt auch eine Ärzte-Datei an: Die Praxen werden ergänzt bzw. aktualisiert, alles andere bleibt.</p>'+
     '<input type="file" id="s-file" accept=".json,application/json,text/plain" style="display:none">'+
     '<div class="actions one" style="margin-top:22px"><button class="btn danger" data-wipe>Alle Daten auf diesem Gerät löschen</button></div>'+
     '<div class="actions one"><button class="btn" data-close>Schließen</button></div>';
@@ -469,24 +554,26 @@ function doExport(){
 }
 function doImport(file){
   const r=new FileReader();
-  r.onload=()=>{try{const d=JSON.parse(r.result); if(!d||d.v!==1||!Array.isArray(d.personen)) throw 0; S=d; save(); sheet=null; view='heute'; draw(); toast('Daten eingelesen')}catch(e){toast('Das ist keine gültige Sicherung.')}};
+  r.onload=()=>{try{const d=JSON.parse(r.result);
+    if(d&&d.gesundheitsmappe_aerzte&&Array.isArray(d.aerzte)){importAerzte(d);return}
+    if(!d||d.v!==1||!Array.isArray(d.personen)) throw 0; if(!Array.isArray(d.aerzte))d.aerzte=[]; S=d; save(); sheet=null; view='heute'; draw(); toast('Daten eingelesen')}catch(e){toast('Das ist keine gültige Sicherung.')}};
   r.readAsText(file);
 }
 
 /* ===================== Zeichnen ===================== */
 function draw(){
-  const titles={heute:'Heute',meds:'Medikamente',termine:'Arzttermine',verlauf:'Verlauf'};
+  const titles={heute:'Heute',meds:'Medikamente',termine:'Arzttermine',aerzte:'Ärzte',verlauf:'Verlauf'};
   $('#ttl').textContent=titles[view]; $('#dt').textContent=fmtLong(todayDate());
   const ps=$('#persons');
   ps.innerHTML=S.personen.length>1?S.personen.map(p=>'<button class="person" data-person="'+esc(p.id)+'" aria-pressed="'+(p.id===S.aktiv)+'">'+esc(p.name)+'</button>').join(''):'';
-  $('#view').innerHTML={heute:renderHeute,meds:renderMeds,termine:renderTermine,verlauf:renderVerlauf}[view]();
+  $('#view').innerHTML={heute:renderHeute,meds:renderMeds,termine:renderTermine,aerzte:renderAerzte,verlauf:renderVerlauf}[view]();
   $$('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.v===view));
-  $('#fab').hidden=!(view==='meds'||view==='termine'||(view==='heute'&&!myMeds().length&&!myTermine().length));
-  $('#fab').setAttribute('aria-label',view==='termine'?'Termin hinzufügen':'Medikament hinzufügen');
+  $('#fab').hidden=!(view==='meds'||view==='termine'||view==='aerzte'||(view==='heute'&&!myMeds().length&&!myTermine().length));
+  $('#fab').setAttribute('aria-label',view==='termine'?'Termin hinzufügen':view==='aerzte'?'Praxis hinzufügen':'Medikament hinzufügen');
   const layer=$('#layer'); layer.innerHTML='';
   let sh=sheet; if(!S.personen.length) sh='welcome';
   if(sh){
-    const body={med:sheetMed,termin:sheetTermin,arzt:sheetArzt,set:sheetSet,welcome:sheetWelcome}[sh]();
+    const body={med:sheetMed,termin:sheetTermin,arzt:sheetArzt,set:sheetSet,welcome:sheetWelcome,aerzt:sheetAerzt}[sh]();
     layer.innerHTML='<div class="sheet-wrap"><div class="sheet" role="dialog" aria-modal="true">'+body+'</div></div>';
     const f=$('input,select',layer); if(f&&sh!=='arzt'&&sh!=='set') try{f.focus({preventScroll:true})}catch(e){}
   }
@@ -495,7 +582,7 @@ function draw(){
 
 /* ===================== Ereignisse ===================== */
 document.addEventListener('click',e=>{
-  const t=e.target.closest('[data-take],[data-skip],[data-go],[data-sheet],[data-close],[data-save],[data-edit-med],[data-edit-t],[data-del-t],[data-ics],[data-remind-t],[data-remind-z],[data-add-time],[data-rm-time],[data-end-med],[data-del-med],[data-export],[data-import],[data-wipe],[data-print],[data-share-arzt],[data-person],.tab,#fab,#btn-set');
+  const t=e.target.closest('[data-take],[data-skip],[data-go],[data-sheet],[data-close],[data-save],[data-edit-med],[data-edit-t],[data-del-t],[data-ics],[data-remind-t],[data-remind-z],[data-add-time],[data-rm-time],[data-end-med],[data-del-med],[data-export],[data-import],[data-wipe],[data-print],[data-share-arzt],[data-person],[data-edit-a],[data-del-a],[data-copy],.tab,#fab,#btn-set');
   if(!t) return;
   const d=t.dataset;
   if(d.take||d.skip){const p=(d.take||d.skip).split('|'); const m=S.meds.find(x=>x.id===p[0]); if(m){setTaken(m,p[1],p[2],d.take?'genommen':'übersprungen'); draw()}}
@@ -505,6 +592,10 @@ document.addEventListener('click',e=>{
   else if('close' in d){closeSheet()}
   else if(d.save==='med'){saveMed()}
   else if(d.save==='termin'){saveTermin()}
+  else if(d.save==='aerzt'){saveAerzt()}
+  else if(d.editA){openSheet('aerzt',d.editA)}
+  else if('delA' in d){ if(t.dataset.confirm!=='1'){t.dataset.confirm='1';t.textContent='Wirklich löschen?';setTimeout(()=>{t.dataset.confirm='';t.textContent='Löschen'},3500)} else {S.aerzte=S.aerzte.filter(a=>a.id!==editId);save();closeSheet();toast('Gelöscht')}}
+  else if(d.copy!=null&&d.copy!==''){navigator.clipboard&&navigator.clipboard.writeText(d.copy).then(()=>toast('Kopiert'),()=>toast('Kopieren nicht möglich'))}
   else if(d.save==='namen'){
     const n0=$('#s-n0').value.trim(), n1=$('#s-n1').value.trim(); if(!n0){$('#s-n0').focus();return}
     S.personen[0].name=n0; if(n1){ if(S.personen[1]) S.personen[1].name=n1; else S.personen.push({id:uid(),name:n1}) } else if(S.personen[1]&&!n1){toast('Person 2 bleibt bestehen. Zum Entfernen die Daten löschen.')}
@@ -530,10 +621,12 @@ document.addEventListener('click',e=>{
   else if('print' in d){window.print()}
   else if('shareArzt' in d){const up=myTermine().filter(x=>x.datum>=iso(todayDate()))[0]; shareText('Medikamentenplan '+person().name,myMeds().map(m=>'- '+m.name+' '+(m.staerke||'')+': '+(m.dosis||1)+'× '+m.zeiten.join(', ')+(m.zweck?' ('+m.zweck+')':'')).join('\n')+(up&&up.fragen.length?'\nFragen:\n- '+up.fragen.join('\n- '):''))}
   else if(t.classList.contains('tab')){view=d.v;sheet=null;draw();$('#view').scrollTop=0}
-  else if(t.id==='fab'){openSheet(view==='termine'?'termin':'med')}
+  else if(t.id==='fab'){openSheet(view==='termine'?'termin':view==='aerzte'?'aerzt':'med')}
   else if(t.id==='btn-set'){openSheet('set')}
 });
 document.addEventListener('change',e=>{
+  if(e.target.id==='t-arzt'){const a=(S.aerzte||[]).find(x=>arztName(x)===e.target.value); if(a){
+    if(!$('#t-fach').value) $('#t-fach').value=a.fach||''; if(!$('#t-ort').value) $('#t-ort').value=[a.strasse,[a.plz,a.ort].filter(Boolean).join(' ')].filter(Boolean).join(', '); if(!$('#t-tel').value) $('#t-tel').value=a.tel||''}}
   const c=e.target.closest('[data-bring]');
   if(c){const p=c.dataset.bring.split(':'); const x=S.termine.find(a=>a.id===p[0]); if(x&&x.bring[+p[1]]){x.bring[+p[1]].done=c.checked;save()}}
   if(e.target.id==='s-file'&&e.target.files[0]) doImport(e.target.files[0]);
