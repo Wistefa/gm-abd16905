@@ -10,6 +10,8 @@
 <meta name="apple-mobile-web-app-title" content="Gesundheit">
 <meta name="theme-color" content="#0E6B62">
 <meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
 <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%230E6B62'/%3E%3Crect x='42' y='72' width='96' height='36' rx='18' transform='rotate(-35 90 90)' fill='none' stroke='white' stroke-width='9'/%3E%3Cpath d='M78 71l30 38' stroke='white' stroke-width='9'/%3E%3C/svg%3E">
 <link rel="icon" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230E6B62'/%3E%3Crect x='14' y='25' width='36' height='14' rx='7' transform='rotate(-35 32 32)' fill='none' stroke='white' stroke-width='4'/%3E%3C/svg%3E">
 <style>
@@ -194,8 +196,30 @@ const KEY='gesundheitsmappe.v1';
 let S=load();
 function blank(){return{v:1,personen:[],aktiv:null,meds:[],log:[],termine:[],aerzte:[],letzteSicherung:null,angelegt:iso(todayDate())}}
 function load(){
-  try{const r=localStorage.getItem(KEY); if(r){const d=JSON.parse(r); if(d&&d.v===1){if(!Array.isArray(d.aerzte))d.aerzte=[]; return d}}}catch(e){}
+  try{const r=localStorage.getItem(KEY); if(r){const d=JSON.parse(r); if(d&&d.v===1){return normalize(d)}}}catch(e){}
   return blank();
+}
+/* Daten auf erwartete Typen bringen (Schutz gegen beschädigte oder präparierte Sicherungsdateien) */
+function normalize(d){
+  const str=v=>v==null?'':String(v), num=(v,def)=>{const n=parseFloat(v);return isFinite(n)?n:def};
+  const idOk=v=>String(v==null?'':v).replace(/[^A-Za-z0-9_-]/g,'').slice(0,40)||uid();
+  const tOk=v=>/^\d{2}:\d{2}$/.test(String(v))?String(v):'';
+  const dOk=v=>/^\d{4}-\d{2}-\d{2}$/.test(String(v))?String(v):'';
+  d.personen=(Array.isArray(d.personen)?d.personen:[]).map(p=>({id:idOk(p.id),name:str(p.name).slice(0,60)}));
+  d.aktiv=d.personen.some(p=>p.id===d.aktiv)?d.aktiv:(d.personen[0]?d.personen[0].id:null);
+  d.meds=(Array.isArray(d.meds)?d.meds:[]).map(m=>Object.assign({},m,{id:idOk(m.id),pid:idOk(m.pid),name:str(m.name),staerke:str(m.staerke),form:str(m.form||'Tablette'),
+    dosis:num(m.dosis,1),zeiten:(Array.isArray(m.zeiten)?m.zeiten:[]).map(tOk).filter(Boolean),tage:(Array.isArray(m.tage)?m.tage:[]).map(x=>parseInt(x,10)).filter(x=>x>=0&&x<=6),
+    zweck:str(m.zweck),hinweis:str(m.hinweis),bestand:(m.bestand==null||m.bestand==='')?null:num(m.bestand,null),warnTage:num(m.warnTage,10),
+    seit:dOk(m.seit)||null,bis:dOk(m.bis)||null,aktiv:m.aktiv!==false})).filter(m=>m.zeiten.length);
+  d.log=(Array.isArray(d.log)?d.log:[]).map(l=>({id:idOk(l.id),pid:idOk(l.pid),key:str(l.key),mid:idOk(l.mid),datum:dOk(l.datum),slot:tOk(l.slot),zeit:tOk(l.zeit)||'00:00',
+    status:l.status==='übersprungen'?'übersprungen':'genommen'})).filter(l=>l.datum&&l.slot);
+  d.termine=(Array.isArray(d.termine)?d.termine:[]).map(x=>({id:idOk(x.id),pid:idOk(x.pid),arzt:str(x.arzt),fach:str(x.fach),datum:dOk(x.datum),zeit:tOk(x.zeit),ort:str(x.ort),tel:str(x.tel),
+    fragen:(Array.isArray(x.fragen)?x.fragen:[]).map(str),bring:(Array.isArray(x.bring)?x.bring:[]).map(b=>({t:str(b&&b.t),done:!!(b&&b.done)})),ergebnis:str(x.ergebnis)})).filter(x=>x.datum);
+  d.aerzte=(Array.isArray(d.aerzte)?d.aerzte:[]).map(a=>{const o={id:idOk(a.id),oben:!!a.oben,kundennr:{}};
+    ['praxis','arzt','fach','strasse','plz','ort','tel','fax','email','web','zeiten','abrechnung','kontoinhaber','iban','bic','bank','steuernr','notiz'].forEach(k=>{o[k]=str(a[k])});
+    Object.keys(a.kundennr||{}).forEach(k=>{o.kundennr[idOk(k)]=str(a.kundennr[k])}); return o});
+  d.letzteSicherung=dOk(d.letzteSicherung)||null; d.v=1;
+  return d;
 }
 let storageOk=true;
 function save(){
@@ -297,7 +321,7 @@ function renderMeds(){
     h+='<button class="card list-btn" style="display:block;width:100%;text-align:left" data-edit-med="'+esc(m.id)+'"><div class="row"><div><b style="font-size:20px">'+esc(m.name)+' '+esc(m.staerke||'')+'</b><div class="meta">'+(m.dosis||1)+' '+esc(m.form||'Tablette')+(m.zweck?' · gegen '+esc(m.zweck):'')+'</div></div></div>'+
        '<div style="margin-top:6px">'+m.zeiten.map(z=>'<span class="pill">'+slotName(z)+' '+esc(z)+'</span>').join('')+(m.tage&&m.tage.length?'<span class="pill">'+m.tage.slice().sort().map(i=>WT[i]).join(' ')+'</span>':'')+'</div>'+
        (m.hinweis?'<div class="meta">'+esc(m.hinweis)+'</div>':'')+
-       (v!=null?'<div class="bar" aria-hidden="true"><i class="'+(low?'low':'')+'" style="width:'+pct+'%"></i></div><div class="meta">Vorrat reicht noch <b style="color:var(--ink)">'+v+' Tage</b> ('+m.bestand+' Stück)</div>':'<div class="hint">Kein Vorrat eingetragen</div>')+'</button>';
+       (v!=null?'<div class="bar" aria-hidden="true"><i class="'+(low?'low':'')+'" style="width:'+pct+'%"></i></div><div class="meta">Vorrat reicht noch <b style="color:var(--ink)">'+v+' Tage</b> ('+esc(m.bestand)+' Stück)</div>':'<div class="hint">Kein Vorrat eingetragen</div>')+'</button>';
   });
   const ended=S.meds.filter(m=>m.pid===S.aktiv&&m.aktiv===false);
   if(ended.length) h+='<p class="hint">'+ended.length+' beendete(s) Medikament(e) sind ausgeblendet. Der Verlauf bleibt erhalten.</p>';
@@ -558,7 +582,7 @@ function doImport(file){
   const r=new FileReader();
   r.onload=()=>{try{const d=JSON.parse(r.result);
     if(d&&d.gesundheitsmappe_aerzte&&Array.isArray(d.aerzte)){importAerzte(d);return}
-    if(!d||d.v!==1||!Array.isArray(d.personen)) throw 0; if(!Array.isArray(d.aerzte))d.aerzte=[]; S=d; save(); sheet=null; view='heute'; draw(); toast('Daten eingelesen')}catch(e){toast('Das ist keine gültige Sicherung.')}};
+    if(!d||d.v!==1||!Array.isArray(d.personen)) throw 0; S=normalize(d); save(); sheet=null; view='heute'; draw(); toast('Daten eingelesen')}catch(e){toast('Das ist keine gültige Sicherung.')}};
   r.readAsText(file);
 }
 

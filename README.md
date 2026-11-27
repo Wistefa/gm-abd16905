@@ -1,6 +1,6 @@
 # Gesundheitsmappe
 
-Einzel-HTML-App (`index.html`) für **Medikamenten-Einnahme** und **Arzttermine**, für zwei Personen (Joper und Partnerin).
+Einzel-HTML-App (`index.html`) für **Medikamenten-Einnahme** und **Arzttermine**, für zwei Personen.
 
 - **Daten nur auf dem Gerät** (localStorage, Schlüssel `gesundheitsmappe.v1`). Kein Server, keine Cloud, keine externen Schriften/Skripte.
 - **Sicherung:** Einstellungen → „Sichern (Datei)“ erzeugt `gesundheitsmappe-sicherung-DATUM.json`; „Datei einlesen“ stellt wieder her (auch für Gerätewechsel).
@@ -12,6 +12,12 @@ Einzel-HTML-App (`index.html`) für **Medikamenten-Einnahme** und **Arzttermine*
 Getestet (Chromium, Handy-Format): Einrichtung, Medikament anlegen, Einnahme/Rücknahme mit Vorrat, Überspringen, Wochentage, Termin, .ics (VALARM), Personenwechsel, Verlauf, Arzt-Übersicht, Sicherung/Einlesen, Löschen, Neuladen. Nicht getestet: iPhone-Safari (Teilen → Erinnerungen, .ics → Kalender).
 
 Kein medizinischer Rat; keine Prüfung von Wechselwirkungen.
+
+## Sicherheit (geprüft 2026-11-27)
+- Content-Security-Policy im Seitenkopf: keine Verbindungen nach außen (`connect-src 'none'`), keine fremden Skripte, Schriften oder Bilder; kein Referrer.
+- Alle Texte werden vor der Anzeige maskiert; eingelesene Dateien (Sicherung und Ärzte-Datei) werden auf erwartete Typen gebracht, bevor sie gespeichert werden.
+- Dieses Repository ist öffentlich und enthält nur den App-Code. Persönliche Daten (Medikamente, Termine, Ärzte, Bankverbindungen) gehören nie hierher.
+- Restrisiko: Die Daten liegen unverschlüsselt im Browser-Speicher des Geräts. Schutz bietet die Gerätesperre (Code/Face ID); Sicherungsdateien nur an sicheren Orten ablegen.
 
 ## Adresse
 https://wistefa.github.io/gm-abd16905/ (öffentliches Repository nur mit dem App-Code, Name absichtlich unauffällig; Seite mit noindex). Die Gesundheitsdaten liegen nie auf GitHub, sondern nur im Browser des jeweiligen Geräts. Private Repositories können auf dem aktuellen GitHub-Tarif keine Pages ausliefern.
