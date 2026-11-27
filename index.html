@@ -354,7 +354,7 @@ const ibanFmt=i=>String(i||'').replace(/\s+/g,'').toUpperCase().replace(/(.{4})/
 const telLink=t=>'<a class="tel" href="tel:'+esc(String(t).replace(/[^\d+]/g,''))+'">'+esc(t)+'</a>';
 function arztName(a){return a.praxis||a.arzt||'ohne Namen'}
 function renderAerzte(){
-  const list=(S.aerzte||[]).slice().sort((a,b)=>arztName(a).localeCompare(arztName(b),'de'));
+  const list=(S.aerzte||[]).slice().sort((a,b)=>(b.oben?1:0)-(a.oben?1:0)||arztName(a).localeCompare(arztName(b),'de'));
   let h='<h2>Ärzte und Praxen</h2><p class="hint" style="margin-top:0">Gilt für '+(S.personen.length>1?'beide Personen':'alle')+'. Kunden- bzw. Patientennummer je Person.</p>';
   if(!list.length) h+='<div class="empty">Noch keine Praxis eingetragen. Mit der Plus-Taste anlegen oder unter Einstellungen eine Ärzte-Datei einlesen.</div>';
   list.forEach(a=>{
@@ -372,7 +372,7 @@ function renderAerzte(){
       row('BIC',a.bic?'<span class="mono">'+esc(a.bic)+'</span>':''); row('Bank',esc(a.bank));
     }
     row('Notiz',esc(a.notiz));
-    h+='<div class="card"><div class="row"><div><b style="font-size:20px">'+esc(arztName(a))+'</b><div class="meta">'+esc([a.praxis&&a.arzt&&a.arzt!==a.praxis?a.arzt:'',a.fach].filter(Boolean).join(' · '))+'</div></div>'+
+    h+='<div class="card"><div class="row"><div>'+(a.oben?'<span class="pill">★ Oben</span>':'')+'<b style="font-size:20px;display:block">'+esc(arztName(a))+'</b><div class="meta">'+esc([a.praxis&&a.arzt&&a.arzt!==a.praxis?a.arzt:'',a.fach].filter(Boolean).join(' · '))+'</div></div>'+
        '<button class="btn ghost small" data-edit-a="'+esc(a.id)+'">Bearbeiten</button></div><dl class="dl">'+dl+'</dl></div>';
   });
   return h;
@@ -381,6 +381,7 @@ function sheetAerzt(){
   const a=editId?S.aerzte.find(x=>x.id===editId):null, v=k=>esc(a&&a[k]!=null?a[k]:'');
   const inp=(k,lab,typ,ph)=>'<label for="a-'+k+'">'+lab+'</label><input type="'+(typ||'text')+'" id="a-'+k+'" value="'+v(k)+'"'+(ph?' placeholder="'+esc(ph)+'"':'')+' autocomplete="off">';
   return '<h3>'+(a?'Praxis bearbeiten':'Neue Praxis')+'</h3>'+
+    '<label class="check"><input type="checkbox" id="a-oben"'+(a&&a.oben?' checked':'')+'> In der Liste oben anzeigen (z. B. Hausarzt)</label>'+
     inp('praxis','Praxis / Name','text','z. B. Hausarztpraxis am Markt')+inp('arzt','Arzt / Ärztin','text','z. B. Dr. med. Anna Muster')+
     '<label for="a-fach">Fachrichtung</label><input type="text" id="a-fach" list="faecher" value="'+v('fach')+'">'+
     inp('strasse','Straße')+'<div class="actions" style="margin-top:0;grid-template-columns:1fr 2fr"><div>'+inp('plz','PLZ')+'</div><div>'+inp('ort','Ort')+'</div></div>'+
@@ -398,7 +399,7 @@ function saveAerzt(){
   if(!rec.praxis&&!rec.arzt){$('#a-praxis').focus();return}
   if(rec.iban){rec.iban=rec.iban.replace(/\s+/g,'').toUpperCase(); if(!ibanOk(rec.iban)&&!confirm('Die IBAN-Prüfziffer stimmt nicht. Trotzdem speichern?')) return}
   rec.bic=rec.bic.toUpperCase();
-  const kn={}; $$('[data-kn]').forEach(i=>{if(i.value.trim()) kn[i.dataset.kn]=i.value.trim()}); rec.kundennr=kn;
+  const kn={}; $$('[data-kn]').forEach(i=>{if(i.value.trim()) kn[i.dataset.kn]=i.value.trim()}); rec.kundennr=kn; rec.oben=$('#a-oben').checked;
   const old=editId?S.aerzte.find(x=>x.id===editId):null;
   if(old) Object.assign(old,rec); else S.aerzte.push(Object.assign({id:uid()},rec));
   save(); sheet=null; editId=null; view='aerzte'; draw(); toast('Gespeichert');
@@ -409,6 +410,7 @@ function importAerzte(d){
   (d.aerzte||[]).forEach(x=>{
     const rec={}; AFELD.forEach(f=>{if(x[f[0]]!=null) rec[f[0]]=String(x[f[0]]).trim()});
     if(rec.iban) rec.iban=rec.iban.replace(/\s+/g,'').toUpperCase();
+    if(x.oben!=null) rec.oben=!!x.oben;
     const kn={}; Object.keys(x.kundennr||{}).forEach(n=>{const v1=w=>String(w||'').toLowerCase().trim().split(/\s+/)[0]; const p=S.personen.find(q=>q.name.toLowerCase()===n.toLowerCase())||S.personen.find(q=>v1(q.name)===v1(n))||(S.personen.length===1?S.personen[0]:null); if(p&&x.kundennr[n]) kn[p.id]=String(x.kundennr[n])});
     const key=s=>String(s||'').toLowerCase().replace(/\s+/g,' ').trim();
     const old=S.aerzte.find(a=>key(arztName(a))===key(rec.praxis||rec.arzt));
